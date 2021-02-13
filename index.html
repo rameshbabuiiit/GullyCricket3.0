@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Score Card for Cricket">
+  <meta name="keywords" content="cricket,score,batting,bowling,scorecard,cric,match">
+  <meta name="author" content="Ramesh Babu Poludasu">
+  <meta name="email" content="rameshbabuiiit@gmail.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="-1" />
+  <meta http-equiv="Content-Language" content="en">
+  <title>Cricket Score</title>
+<script>
+function overRidePlayerScore(player){
+	if(player === "player1"){
+		 updatedScore = document.getElementById("p1Score").value;
+		 document.getElementById("player1").innerHTML = updatedScore;
+		 document.getElementById("p1Score").value="0";
+		 toggleId="playerOverrideDiv";
+	}
+	else if(player === "player2"){
+			 updatedScore = document.getElementById("p2Score").value;
+		 document.getElementById("player2").innerHTML = updatedScore;
+		 toggleId="playerOverrideDiv2";
+		 document.getElementById("p2Score").value="0";
+	}
+	if (playersScoreMap.hasOwnProperty(player)) playersScoreMap[player] = updatedScore;
+	toggle(toggleId);
+	document.getElementById("notify").innerHTML = "Batsman score overridden!";
+}
+function retirePlayer(player){
+	if(player === "player1"){
+		document.getElementById("strike1").checked = true;
+		 toggleId="playerOverrideDiv";
+	}
+	else if(player === "player2"){
+			document.getElementById("strike2").checked = true;
+			 toggleId="playerOverrideDiv2";
+	}
+	changePlayer();
+	toggle(toggleId);
+	document.getElementById("notify").innerHTML = "Retired! Ensure who is on batting strike!";
+}
+
+function setTarget() {
+	targetScore = document.getElementById("targetScore").value;
+	targetBalls = document.getElementById("targetScore").value;
+	if (targetScore > 0 && targetBalls != 0) {
+		targetBalls = countBalls(document.getElementById("targetOvers").value);
+		curScore = document.getElementById("totScore").innerHTML;
+		reqRuns = targetScore - document.getElementById("totScore").innerHTML;
+		ballsBowled = countBalls(document.getElementById("overNum").innerHTML);
+		remBalls = targetBalls - ballsBowled;
+		localStorage.setItem("targetScore", targetScore);
+		localStorage.setItem("targetOvers", document.getElementById("targetOvers").value);
+		document.getElementById("targetBoard").innerHTML = reqRuns + " runs required of " + remBalls + " balls";
+		if (reqRuns <= 0) {
+			document.getElementById("notify").innerHTML = "End of the match! Chasing Team won!";
+		} else if (remBalls <= 0) {
+			document.getElementById("notify").innerHTML = "End of the match! Defending Team won!";
+		} 
+	}
+}
+
+function countBalls(curOver) {
+	var decimalDot = curOver.lastIndexOf(".");
+	if (decimalDot == -1) {
+		decimal = 0;
+		balls = curOver * 6;
+	} else {
+		decimal = curOver.substring(decimalDot + 1, curOver.length);
+		balls = curOver.substring(0, decimalDot) * 6;
+	}
+	totalBalls = (balls * 1) + (decimal * 1);
+	return totalBalls;
+}
+
+function toggle(divId) {
+	var div = document.getElementById(divId);
+	if (div.style.display === "none") {
+		div.style.display = "block";
+	} else {
+		div.style.display = "none";
+	}
+}
+
+function editBatsMenScore() {
+	toggle("editScores");
+	document.getElementById("scoreArea").value = document.getElementById("BatsMenStore").innerHTML;
+}
+
+function UpdateBatsMenScore() {
+	document.getElementById("BatsMenStore").innerHTML = document.getElementById("scoreArea").value;
+	toggle("editScores");
+}
+
+var playersScoreMap = {};
+
+function isSyncOn() {
+	var checkBox = document.getElementById("syncFlagId");
+	return checkBox.checked;
+}
+
+function doesWideCount() {
+	var checkBox = document.getElementById("wideFlagId");
+	return checkBox.checked;
+}
+
+function doesNoBallCount() {
+	var checkBox = document.getElementById("noBallFlagId");
+	return checkBox.checked;
+}
+
+function viewLinkCopy() {
+	var url = "http://www.learnmodeon.com/cricket/view.php?inningsId=" + document.getElementById("inningsId").value;
+	var textarea;
+	var result;
+	try {
+		textarea = document.createElement('textarea');
+		textarea.setAttribute('readonly', true);
+		textarea.setAttribute('contenteditable', true);
+		textarea.style.position = 'fixed';
+		textarea.value = url;
+
+		document.body.appendChild(textarea);
+
+		//textarea.focus();
+		textarea.select();
+
+		const range = document.createRange();
+		range.selectNodeContents(textarea);
+
+		const sel = window.getSelection();
+		sel.removeAllRanges();
+		sel.addRange(range);
+
+		textarea.setSelectionRange(0, textarea.value.length);
+		result = document.execCommand('copy');
+	} catch (err) {
+		console.error(err);
+		result = null;
+	} finally {
+		document.body.removeChild(textarea);
+	}
+	document.getElementById("notify").innerHTML = "Link copied to clipboard!";
+}
+
+function pushData() {
+	document.getElementById("score").value = document.getElementById("totScore").innerHTML;
+	document.getElementById("overs").value = document.getElementById("overNum").innerHTML;
+	document.getElementById("ballByBalls2").value = document.getElementById("ballByBall").innerHTML;
+	document.getElementById("inningsIdForm").value = document.getElementById("inningsId").value;
+	document.getElementById("wktsdb").value = document.getElementById("wikts").innerHTML;
+	document.getElementById("crrdb").value = document.getElementById("runRate").innerHTML;
+	batsMenScore = "<tr><td>"+document.getElementById("player1Name").value+"*</td><td>"+document.getElementById("player1").innerHTML+"</td></tr>"+"<tr><td>"+document.getElementById("player2Name").value+"*</td><td>"+document.getElementById("player2").innerHTML+"</td></tr>"+document.getElementById("BatsMenStore").innerHTML;
+	document.getElementById("bmScoresdb").value=batsMenScore;
+	document.getElementById("pushData").submit();
+}
+
+function generateRandomId() {
+	var milliseconds = (new Date).getTime();
+	return milliseconds + Math.floor(Math.random() * 9999999999);
+}
+
+function startIng1() {
+	clearStorage();
+	startOver();
+	document.getElementById("inningsId").value = generateRandomId();
+	localStorage.setItem("inningsId1", document.getElementById("inningsId").value);
+}
+
+function startOver() {
+	document.getElementById("ballByBall").innerHTML = "[1] : ";
+	document.getElementById("overNum").innerHTML = "0";
+	document.getElementById("curOver").innerHTML = "0";
+	document.getElementById("totScore").innerHTML = document.getElementById("initScore").value;
+	document.getElementById("inningsId").value = "";
+	document.getElementById("runRate").innerHTML = "0.00";
+	document.getElementById("wikts").innerHTML = "0";
+	document.getElementById("nbExtras").value = "0";
+	document.getElementById("wkRuns").value = "0";
+	document.getElementById("wideFlagId").checked = true;
+	document.getElementById("noBallFlagId").checked = true;
+	document.getElementById("syncFlagId").checked = false;
+	document.getElementById("player1Name").value = "player1";
+	document.getElementById("player1").innerHTML = "0";
+	document.getElementById("player2Name").value = "player2";
+	document.getElementById("player2").innerHTML = "0";
+	document.getElementById("BatsMenStore").innerHTML = "";
+	document.getElementById("targetBoard").innerHTML = "";
+	document.getElementById("targetScore").value = "0";
+	document.getElementById("targetOvers").value = "0";
+	playersScoreMap = {};
+	document.getElementById("notify").innerHTML = "Innings1 Started!";
+
+}
+
+
+function saveIng() {
+	if (localStorage.getItem("inningsId1") == null) {
+		alert("Please click on start to begin the innings!");
+		clearStorage();
+		document.getElementById("notify").innerHTML = "Please start an innings!";
+	} else {
+		saveIng1();
+	}
+}
+
+
+function initScript() {
+	if (localStorage.getItem("inningsId1") != null) {
+		loadIng1();
+	} else {
+		alert("Please click on start to beging the innings!");
+		document.getElementById("notify").innerHTML = "Please start an innings!";
+	}
+
+}
+
+function getDate() {
+	var today = new Date();
+	var dd = today.getDate();
+	var mm = today.getMonth() + 1;
+	var yyyy = today.getFullYear();
+	if (dd < 10) {
+		dd = '0' + dd
+	}
+	if (mm < 10) {
+		mm = '0' + mm
+	}
+	today = mm + '/' + dd + '/' + yyyy;
+	return today;
+}
+
+function loadIng1() {
+	document.getElementById("inningsId").value = localStorage.getItem("inningsId1");
+	if (localStorage.getItem("totScore1") != null) {
+		document.getElementById("ballByBall").innerHTML = localStorage.getItem("ballByBall1");
+		document.getElementById("overNum").innerHTML = localStorage.getItem("overNum1");
+		document.getElementById("curOver").innerHTML = localStorage.getItem("curOver1");
+		document.getElementById("totScore").innerHTML = localStorage.getItem("totScore1");
+		document.getElementById("wikts").innerHTML = localStorage.getItem("wickets");
+		document.getElementById("runRate").innerHTML = localStorage.getItem("crr");
+		document.getElementById("wideFlagId").checked = (localStorage.getItem("wdFlag") == 'true');
+		document.getElementById("noBallFlagId").checked = (localStorage.getItem("nbFlag") == 'true');
+		document.getElementById("syncFlagId").checked = (localStorage.getItem("syncFlag") == 'true');
+		document.getElementById("BatsMenStore").innerHTML = localStorage.getItem("outIndScore");
+		document.getElementById("player1").innerHTML = localStorage.getItem("player1");
+		document.getElementById("player2").innerHTML = localStorage.getItem("player2");
+		playersScoreMap["player1"] = localStorage.getItem("player1");
+		playersScoreMap["player2"] = localStorage.getItem("player2");
+		if ((localStorage.getItem("targetOvers") === null) || (localStorage.getItem("targetScore") === null)) {
+			//do nothing
+		} else {
+			document.getElementById("targetOvers").value = localStorage.getItem("targetOvers");
+			document.getElementById("targetScore").value = localStorage.getItem("targetScore");
+			setTarget();
+		}
+		document.getElementById("notify").innerHTML = " Innings 1 Score Retrieved!";
+
+	} else {
+		document.getElementById("notify").innerHTML = "No Storage found for innings1!"
+	}
+}
+
+
+function getShareText() {
+	var score = document.getElementById("totScore").innerHTML;
+	var overs = document.getElementById("overNum").innerHTML;
+	var bByb = document.getElementById("ballByBall").innerHTML;
+	bByb = bByb.replace(/<br>/g, '\r\n');
+	var msg = "*[Cricket Score Card] -* " + getDate() + "\r\n\r\n*Total Score :* " + score + "\r\n*Overs :* " + overs + "\r\n*Ball By Ball :*\r\n" + bByb;
+	var uri = "whatsapp://send?text=" + msg;
+	location.href = encodeURI(uri);
+	return true;
+}
+
+function shareUrl() {
+	var url = "http://www.learnmodeon.com/cricket/view.php?inningsId=" + document.getElementById("inningsId").value;
+	var uri = "whatsapp://send?text=" + url;
+	//var uri = "https://wa.me/?text="+url;
+	location.href = encodeURI(uri);
+	return true;
+}
+
+String.prototype.count = function (s1) {
+	return (this.length - this.replace(new RegExp(s1, "g"), '').length) / s1.length;
+}
+
+function updateWickets(ballByBall) {
+	var wkts = ballByBall.count('Wkt');
+	document.getElementById("wikts").innerHTML = wkts;
+}
+
+function getStrikerId() {
+	if (document.getElementById("strike2").checked)
+		return document.getElementById("strike2").value;
+	else return document.getElementById("strike1").value;
+
+}
+
+function changeStrike() {
+	if (document.getElementById("strike2").checked) {
+		document.getElementById("strike2").checked = false;
+		document.getElementById("strike1").checked = true;
+	} else {
+		document.getElementById("strike2").checked = true;
+		document.getElementById("strike1").checked = false;
+	}
+}
+
+function UpdatePlayerScores(runs) {
+	var striker = getStrikerId();
+	if (!playersScoreMap.hasOwnProperty(striker)) playersScoreMap[striker] = 0;
+	playersScoreMap[striker] = (playersScoreMap[striker] * 1) + (runs * 1);
+	//document.getElementById('batsmenboard').innerHTML = playerScores;
+	document.getElementById(striker).innerHTML = playersScoreMap[striker];
+	//document.getElementById('player2').innerHTML = playersScoreMap['player2'];
+}
+
+function changePlayer() {
+	var striker = getStrikerId();
+	var playerName = 'Player';
+	if (striker == 'player1') {
+		playerName = document.getElementById("player1Name").value;
+		document.getElementById("player1Name").value = "player1";
+	} else if (striker == 'player2') {
+		playerName = document.getElementById("player2Name").value;
+		document.getElementById("player2Name").value = "player2";
+	}
+	var outBatsmenList = document.getElementById("BatsMenStore").innerHTML;
+	outBatsmenList = outBatsmenList + '<tr><td>' + playerName + '</td><td>' + document.getElementById(striker).innerHTML + '</td></tr>';
+	document.getElementById("BatsMenStore").innerHTML = outBatsmenList;
+	playersScoreMap[striker] = 0;
+	document.getElementById(striker).innerHTML = 0;
+}
+
+
+function handleOver(runs) {
+	var ballByBall = document.getElementById("ballByBall").innerHTML;
+
+	if (runs == 1 || runs == 3) {
+		UpdatePlayerScores(runs);
+		changeStrike();
+	} else if (runs == 2 || runs == 4 || runs == 6) {
+		UpdatePlayerScores(runs);
+	}
+	if (runs === "Nb") {
+		var xtras = document.getElementById("nbExtras").value;
+		ballByBall = ballByBall + (runs + xtras + ",");
+		if (doesNoBallCount()) {
+			runs = 1 + (+xtras);
+		} else {
+			runs = 0;
+		}
+		/*if(xtras ==1 || xtras == 3){
+			UpdatePlayerScores(xtras);
+			changeStrike();
+		}else if (xtras == 2 || xtras == 4 || xtras == 6) {
+			UpdatePlayerScores(xtras);
+		}*/
+	} else if (runs == "Wd") {
+		ballByBall = ballByBall + runs + ",";
+		if (doesWideCount()) {
+			runs = 1
+		} else {
+			runs = 0
+		};
+	} else if (runs === "Wkt") {
+		var wRuns = document.getElementById("wkRuns").value;
+		ballByBall = ballByBall + runs + wRuns + "|";
+		runs = 0 + (+wRuns);
+		updateWickets(ballByBall);
+		changePlayer();
+	} else {
+		ballByBall = ballByBall + runs + "|";
+	}
+	var curOver = document.getElementById("curOver").innerHTML;
+	var totScore = document.getElementById("totScore").innerHTML;
+	curOver = (+curOver) + (+runs);
+	var thisover = ballByBall.substring(ballByBall.lastIndexOf(":") + 1, );
+	document.getElementById("overNum").innerHTML = (ballByBall.split(":").length - 2) + "." + (thisover.split("|").length - 1) % 6;
+	document.getElementById("curOver").innerHTML = curOver.toString();
+	totScore = (+totScore) + (+runs);
+	document.getElementById("totScore").innerHTML = totScore.toString();
+	document.getElementById("ballByBall").innerHTML = ballByBall;
+	document.getElementById("notify").innerHTML = "This Over:" + thisover;
+
+	if ((thisover.split("|").length - 1) == 6) {
+		nextOver();
+	}
+	calcRunRate();
+	document.getElementById("nbExtras").value = 0;
+	document.getElementById("wkRuns").value = 0;
+	setTarget();
+	saveIng();
+}
+
+function nextOver() {
+	alert("Over Complete!");
+	var curOverNum = document.getElementById("overNum").innerHTML;
+	document.getElementById("notify").innerHTML = "curOverNum:" + curOverNum;
+	ballByBall = document.getElementById("ballByBall").innerHTML;
+	var curOver = document.getElementById("curOver").innerHTML;
+	nxtOver = Math.floor(curOverNum) + 1;
+	document.getElementById("overNum").innerHTML = (nxtOver).toString();
+	document.getElementById("ballByBall").innerHTML = ballByBall + "=" + curOver + "<br>[" + (nxtOver + 1) + "] : ";
+	document.getElementById("curOver").innerHTML = "0";
+	saveIng();
+	calcRunRate();
+	changeStrike();
+	if (isSyncOn()) {
+		pushData();
+	}
+	document.getElementById("notify").innerHTML = (+nxtOver) + " overs completed!";
+	return false;
+}
+
+function undoLastBall() {
+
+	if (document.getElementById("overNum").innerHTML < 0.1 && document.getElementById("totScore").innerHTML <= 0) {
+		alert("Not Valid Request! Click on start innings!");
+		document.getElementById("notify").innerHTML = "Please click on start innings!";
+		return;
+	}
+	var ballByBallStr = document.getElementById("ballByBall").innerHTML;
+	var lastPipeIdx = ballByBallStr.lastIndexOf("|");
+	var lastCommaIdx = ballByBallStr.lastIndexOf(",");
+	var endSymbolIdx = -1;
+	var startSymbolIdx = -1;
+	var endScoreIdx = -1;
+	if (lastPipeIdx > lastCommaIdx) {
+		endSymbolIdx = lastPipeIdx;
+	} else {
+		endSymbolIdx = lastCommaIdx;
+	}
+	var endSymbolIdx1 = endSymbolIdx;
+	while (endSymbolIdx1 >= 0) {
+
+		endSymbolIdx1 = endSymbolIdx1 - 1;
+		if (ballByBallStr[endSymbolIdx1] === "|") {
+			startSymbolIdx = endSymbolIdx1;
+			endScoreIdx = startSymbolIdx + 1;
+			break;
+		} else if (ballByBallStr[endSymbolIdx1] === ",") {
+			startSymbolIdx = endSymbolIdx1;
+			endScoreIdx = startSymbolIdx + 1;
+			break;
+		} else if (ballByBallStr[endSymbolIdx1] === " " && ballByBallStr[endSymbolIdx1 - 1] === ":") {
+			startSymbolIdx = endSymbolIdx1;
+			endScoreIdx = startSymbolIdx;
+			break;
+		}
+	}
+	var undoStr = ballByBallStr.slice(startSymbolIdx + 1, endSymbolIdx);
+	var overBorderIdx = undoStr.lastIndexOf(":");
+	if (overBorderIdx !== -1) {
+		undoStr = undoStr.substring(overBorderIdx + 1, undoStr.length);
+	}
+	var lessScore = calcUndoRuns(undoStr);
+	var lessBalls = calcUndoBalls(undoStr);
+	undoOperation(lessScore, endScoreIdx, lessBalls);
+	saveIng();
+	updateWickets(document.getElementById("ballByBall").innerHTML);
+	calcRunRate();
+	var d = new Date();
+	document.getElementById("notify").innerHTML = "Undone last ball at " + d.toLocaleTimeString();
+
+
+}
+
+function calcUndoRuns(lastScoreStr) {
+	var lessScore = 0;
+	var len = lastScoreStr.length;
+	if (lastScoreStr.startsWith("Wkt") && len > 3) {
+		lessScore = lessScore + Number(lastScoreStr.substr(3, len));
+	} else if (lastScoreStr.startsWith("Nb") && len > 2) {
+		if (doesNoBallCount()) {
+			lessScore = lessScore + 1 + Number(lastScoreStr.substr(2, len));
+		} else {
+			lessScore = 0;
+		};
+	} else if (lastScoreStr.startsWith("Wd")) {
+		if (doesWideCount()) {
+			lessScore = lessScore + 1;
+		} else {
+			lessScore = 0;
+		};
+	} else {
+		lessScore = (lessScore) + Number(lastScoreStr);
+	}
+	return lessScore;
+}
+
+function calcUndoBalls(lastScoreStr) {
+	var lessBalls = 0;
+	var len = lastScoreStr.length;
+	if (lastScoreStr.startsWith("Wkt") && len > 3) {
+		lessBalls = 1;
+	} else if (lastScoreStr.startsWith("Nb") && len > 2) {
+		lessBalls = 0;
+	} else if (lastScoreStr.startsWith("Wd")) {
+		lessBalls = 0;
+	} else {
+		lessBalls = 1;
+	}
+	return lessBalls;
+}
+
+function undoOperation(lessScore, startIdx, lessBalls) {
+	//undoScore
+	var ballByball = document.getElementById("ballByBall").innerHTML;
+	document.getElementById("ballByBall").innerHTML = ballByball.substring(0, startIdx);
+
+	//reduce from total Score
+	var totScore = document.getElementById("totScore").innerHTML;
+	document.getElementById("totScore").innerHTML = totScore - lessScore;
+
+	//reduce from current Over Score
+	var curOverScore = document.getElementById("curOver").innerHTML - lessScore;
+	document.getElementById("curOver").innerHTML = curOverScore;
+
+	if (lessBalls > 0) {
+		var curOver = document.getElementById("overNum").innerHTML;
+		var decimalDot = curOver.lastIndexOf(".");
+		if (decimalDot == -1) {
+			decimal = 0;
+		} else {
+			decimal = curOver.substring(decimalDot, curOver.length);
+		}
+
+		if (decimal == 0) {
+			var prevScore = ballByball.slice(ballByball.lastIndexOf("=") + 1, ballByball.lastIndexOf("<"));
+			curOver = curOver - 1 + 0.5;
+			document.getElementById("curOver").innerHTML = prevScore - lessScore;
+		} else {
+			curOver = (curOver - 0.1).toFixed(1);
+		}
+		document.getElementById("overNum").innerHTML = curOver;
+	}
+}
+
+function calcRunRate() {
+	var score = document.getElementById("totScore").innerHTML;
+	var overs = document.getElementById("overNum").innerHTML;
+	var decimalDot = overs.lastIndexOf(".");
+	if (decimalDot > 0) {
+		over = overs.substring(0, decimalDot);
+		balls = overs.substring(decimalDot + 1, overs.length);
+		totalOvers = (over * 1) + (balls / 6);
+	} else {
+		totalOvers = overs;
+	}
+	var avg = (score / totalOvers).toFixed(2);
+	document.getElementById("runRate").innerHTML = avg;
+}
+/***********************************************
+ ***********Storage Management ******************
+ ***********************************************/
+
+
+//Innings wise storage
+
+function saveIng1() {
+	if (typeof (Storage) !== "undefined") {
+		localStorage.setItem("ballByBall1", document.getElementById("ballByBall").innerHTML);
+		localStorage.setItem("overNum1", document.getElementById("overNum").innerHTML);
+		localStorage.setItem("curOver1", document.getElementById("curOver").innerHTML);
+		localStorage.setItem("totScore1", document.getElementById("totScore").innerHTML);
+		localStorage.setItem("inningsId1", document.getElementById("inningsId").value);
+		localStorage.setItem("wickets", document.getElementById("wikts").innerHTML);
+		localStorage.setItem("crr", document.getElementById("runRate").innerHTML);
+		localStorage.setItem("wdFlag", document.getElementById("wideFlagId").checked);
+		localStorage.setItem("nbFlag", document.getElementById("noBallFlagId").checked);
+		localStorage.setItem("syncFlag", document.getElementById("syncFlagId").checked);
+		localStorage.setItem("outIndScore", document.getElementById("BatsMenStore").innerHTML);
+		localStorage.setItem("player1", document.getElementById("player1").innerHTML);
+		localStorage.setItem("player2", document.getElementById("player2").innerHTML);
+		//document.getElementById("notify").innerHTML = "Innings1 data saved!";
+	} else {
+		document.getElementById("notify").innerHTML = "No Web Storage supported in this browser!";
+	}
+}
+
+
+function clearIng1() {
+	localStorage.removeItem("ballByBall1");
+	localStorage.removeItem("overNum1");
+	localStorage.removeItem("curOver1");
+	localStorage.removeItem("totScore1");
+	localStorage.removeItem("inningsId1");
+	localStorage.removeItem("wickets");
+	localStorage.removeItem("crr");
+	localStorage.removeItem("wdFlag");
+	localStorage.removeItem("nbFlag");
+	localStorage.removeItem("syncFlag");
+	localStorage.removeItem("outIndScore");
+	localStorage.removeItem("player1");
+	localStorage.removeItem("player2");
+	localStorage.removeItem("targetScore");
+	localStorage.removeItem("targetOvers");
+}
+
+
+function clearStorage() {
+	clearIng1();
+	startOver();
+	//document.getElementById("ing").innerHTML = "innings1";
+	document.getElementById("notify").innerHTML = "All local storage has has been removed!"
+}
+
+</script>
+<style>
+body {
+	background: white;
+}
+
+.button {
+	background-color: #e7e7e7;
+	color: black;
+	border: none;
+	color: black;
+	padding: 10px 15px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 20px;
+	margin: 4px 4px;
+	cursor: pointer;
+	border-radius: 10px;
+}
+
+#p1Retd,
+#p2Retd,
+#helpButton,
+#updP1Score,
+#updP2Score,
+#p1Ovrd,
+#p2Ovrd,
+#softMenu {
+	background-color: #e7e7e7;
+	text-align: center;
+	cursor: pointer;
+	border-radius: 10px;
+}
+
+#p1Retd:hover,
+#p2Retd:hover,
+#helpButton:hover,
+#softMenu:hover,
+#updP1Score:hover,
+#updP2Score:hover,
+#p1Ovrd:hover,
+#p2Ovrd:hover  {
+	background-color: #4CAF50;
+	color: white;
+	-webkit-animation-name: example;
+	/* Safari 4.0 - 8.0 */
+	-webkit-animation-duration: 4s;
+	/* Safari 4.0 - 8.0 */
+	animation-name: example;
+	animation-duration: 2s;
+}
+
+.button:hover {
+	background-color: #4CAF50;
+	color: white;
+	-webkit-animation-name: example;
+	/* Safari 4.0 - 8.0 */
+	-webkit-animation-duration: 4s;
+	/* Safari 4.0 - 8.0 */
+	animation-name: example;
+	animation-duration: 2s;
+}
+
+@keyframes example {
+	from {
+		background-color: #4CAF50;
+	}
+	to {
+		background-color: blue;
+	}
+}
+
+.table1 {
+	border-collapse: collapse;
+	width: 100%;
+	border: 2px solid #ddd;
+}
+
+.scoringTool {
+	border-collapse: collapse;
+}
+
+.table1 th,
+td {
+	text-align: left;
+	padding: 8px;
+}
+
+.table1 tr:nth-child(even) {
+	background-color: #f2f2f2
+}
+
+h2 {
+	background: linear-gradient(0deg, #138808 23%, #ffffff 33%, #ffffff 66%, #FF9933 26%);
+	//background-color:#000080;
+	border: 5px dotted blue;
+	border-collapse: collapse;
+	color: #000080;
+	margin: auto;
+	text-align: center;
+}
+
+#totScore {
+	font-size: 30px;
+}
+
+#sboard {
+	font-size: 30px;
+}
+
+.scoreBoard {
+	background-color: teal;
+	border-collapse: collapse;
+	color: white;
+	table-layout: auto;
+	width: 100%;
+}
+
+#player2Name,
+#player1Name,
+#targetScore,
+#p1Score,
+#p2Score,
+#targetOvers {
+	height: 20px;
+	width: 60px;
+	background-color: white;
+	border-radius: 5px;
+	background-color: lightblue;
+}
+
+#player1,
+#player2 {
+	font-size: 20px;
+}
+
+input[type=text],
+[type=number] {
+	padding: 0;
+	height: 30px;
+	width: 50px;
+	position: relative;
+	text-align: center;
+	outline: none;
+	border: 1px solid #cdcdcd;
+	border-color: rgba(0, 0, 0, .15);
+	background-color: lightblue;
+	font-size: 16px;
+	border-radius: 30px;
+}
+
+#notify {
+	color: navy;
+	font-size: 15px;
+	padding-left: 10px;
+	background-color: yellow;
+}
+
+.table2 {
+	border-collapse: collapse;
+	table-layout: auto;
+	width: 100%;
+}
+
+#batsMensScoreTable {
+	table-layout: auto;
+	font-size: 16px;
+	border-radius: 30px;
+}
+
+#playerScoretbl,
+#settingsTbl{
+	table-layout: auto;
+	width: 100%;
+	border-collapse:collapse;
+
+}
+
+#playerOverrideDiv,#playerOverrideDiv,{
+	width:200px;
+}
+
+#BatsMenStore tr:nth-child(even) {background: #CCC; font-weight:bold;}
+#BatsMenStore tr:nth-child(odd) {background: lightgreen;font-weight:bold;}
+
+</style>
+</head>
+<body onload="initScript();">
+   <h2>Ram's - Gully Cricket<b id="ing"></b></h2>
+   <br>
+   <div style="overflow-x:auto;">
+      <table border="3px 3px" class="table2" align="center">
+         <tr>
+            <td><input type="text" id="initScore" placeholder="0" value="0" style="display:none;"/><button class="button" type="button" value="0" onClick="startIng1()">Start</button></td>
+            <td><input type="text" name="inningsId" id="inningsId" style='background-color:lightgreen;' disabled>
+               <button class="button" onclick="viewLinkCopy()" style="width:40px;font-size:10px;padding-left:5px;"><b>Share</b></button>
+            </td>
+            <td><button class="button" type="button" value="0" onClick="clearStorage()">Clear</button></td>
+         </tr>
+      </table><br>
+	   <table id="settingsTbl" border="1px 1px">
+         <tr>
+            <td><input type="checkbox" id="syncFlagId">Sync</td>
+            <td><input type="checkbox" id="wideFlagId" Checked>Wide</td>
+            <td><input type="checkbox" id="noBallFlagId" Checked>NoBall</td>
+			<td><button id='helpButton' onclick="toggle('helpSection')">Help?</button></td>
+         </tr>
+      </table>
+   </div>
+   <table id="playerScoretbl">
+      <div id="striking">
+         <tr>
+            <td><input type="radio" id="strike1" name="strike" value="player1" checked><input type="text" id="player1Name" value="player1"> : <b id="player1"></b>
+			<button id='updP1Score' onclick="toggle('playerOverrideDiv')"><b>...</b></button><table id='playerOverrideDiv' style="display:none"><tr><td>
+			<button id="p1Retd" onclick="retirePlayer('player1')">Retd.</button></td><td>
+			<input type="text" value="0" id="p1Score"><button onclick="overRidePlayerScore('player1')" id="p1Ovrd">Update</button></td></tr></table>
+			</td>
+            <td><input type="radio" id="strike2" name="strike" value="player2"><input type="text" id="player2Name" value="player2"> : <b id="player2">0</b> <button id='updP2Score' onclick="toggle('playerOverrideDiv2')"><b>...</b></button><table id='playerOverrideDiv2' style="display:none"><tr><td>
+			<button id="p2Retd" onclick="retirePlayer('player2')">Retd.</button></td><td>
+			<input type="text" value="0" id="p2Score"><button onclick="overRidePlayerScore('player2')" id="p2Ovrd">Update</button></td></tr></table></td>
+         </tr>
+      </div>
+   </table>
+   <table border="2px 2px" class="scoreBoard" align="center">
+      <tbody>
+         <tr>
+            <td><b>CurOvr: <i id="curOver">0</i></b></td>
+            <td><b id="sboard"><i id="totScore">0</i>/<i id="wikts">0</i></b>(<i id="overNum">0</i> ovrs)</td>
+            <td><b>CRR: <i id="runRate">0</i></b></td>
+         </tr>
+   </table>
+   <div style="overflow-x:auto;"><b id="notify">Notifications!</b></div>
+   <div style="overflow-x:auto;">
+      <table border="1px" align="center" class="scoringTool">
+         <tr>
+            <td><input type="number" id="nbExtras" value="0" placeholder="0" step=1 min=0/><b>+</b><button class="button" type="button" value="Nb" onClick="handleOver(this.value)">nb</button></td>
+            <td><button class="button" type="button" value="0" onClick="handleOver(this.value)">dot</button></td>
+            <td><button class="button" type="button" value="1" onClick="handleOver(this.value)">1</button></td>
+         </tr>
+         <tr>
+            <td><input type="number" id="wkRuns" value="0" placeholder="0" step=1 min=0/><b>+</b><button class="button" type="button" value="Wkt" onClick="handleOver(this.value)">wkt</button></td>
+            <td><button class="button" type="button" value="2" onClick="handleOver(this.value)">2</button></td>
+            <td><button class="button" type="button" value="3" onClick="handleOver(this.value)">3</button></td>
+         </tr>
+         <tr>
+            <td><button class="button" type="button" value="Wd" onClick="handleOver(this.value)">wd</button></td>
+            <td><button class="button" type="button" value="4" onClick="handleOver(this.value)">4</button></td>
+            <td><button class="button" type="button" value="6" onClick="handleOver(this.value)">6</button></td>
+         </tr>
+         <tr>
+            <!--<td><button class="button" type="button" value="0" onClick="saveIng()">Save</button></td> --!>
+               <!-- <td><a id="wappLink" href="#" data-action="share/whatsapp/share" onClick="getShareText(); return false;"><button class="button" type="button">Share</button></a></td> !-->
+            <td colspan="3"><button class="button" type="button" value="0" onClick="undoLastBall()" >undo</button><button class="button" type="button" value="0" onClick="nextOver()">nxt over</button><button class="button" type="button" value="0" onClick="pushData()">sync</button></td>
+         </tr>
+      </table>
+   </div>
+   <br>
+   <table>
+      <tr>
+         <td id="targetBoard"></td>
+      </tr>
+   </table>
+   <div>
+      <table>
+         <tr>
+            <td><button onclick="toggle('batsMenScoreDiv')" id="softMenu">Batsmen Score</button></td>
+            <td><button onclick="toggle('ballByballDiv')" id="softMenu">BallByBall</button></td>
+            <td><button onclick="toggle('targetDiv')" id="softMenu">Set Target</button></td>
+         </tr>
+      </table>
+      <table>
+         <tr id="targetDiv" style="display:none">
+            <td>Target Score:<input type="text" id="targetScore" value="0" /> </td>
+            <td>Total Overs:<input type="text" id="targetOvers" value="0" /></td>
+            <td><button onclick="setTarget()">Update</button></td>
+         </tr>
+      </table>
+      <table id="batsMensScoreTable" broder="3px 3px">
+         <tr id="batsMenScoreDiv" style="display:none">
+			<td><table><tbody id="BatsMenStore"></tbody></table></td>
+            <td><button onclick="editBatsMenScore()">Edit</button></td>
+               <div id="editScores" style="display:none"><textarea id="scoreArea"></textarea>
+                  <button onclick="UpdateBatsMenScore()">Update</button>
+               </div>
+         </tr>
+      </table>
+      <table border="3px 3px" class="table1" id='ballByballDiv' style="display:none;overflow-x:auto;">
+         <tr>
+            <td><b>Ball By Ball</b></td>
+            <td><i id="ballByBall">[1] : </i></td>
+         </tr>
+      </table>
+   </div>
+   <div id='helpSection' style="display:none;overflow-x:auto;"><button id='helpButton' onclick="toggle('helpSection')">Hide Help</button><pre id='helpContent'>
+***************************************
+Welcome to Rams_GullyCricket_2.2Beta
+***************************************
+visit for latest version: www.learnmodeon.com/cricket
+
+
+============================Section I========================================
+How to start/stop an innings?
+[Start] click on [Start] button to start/restart an innings of the match.
+[Share] click on Share button to copy url of scorecard for remote audience. Ensure you check on [Sync] button to save score online.
+[Clear] clicking on [Clear] button clears all local storage related to this app on your mobile.
+
+How to save data online/choose extra runs settings?
+
+[]Sync
+	>> If [sync] is selected then the score will be saved to server "EACH OVER". Press on Share button to copy the url of online score board.
+	>>> Tip: select this if you want to share live scorecard to remote audience.
+
+[]Wide 
+	>> If [Wide] is selected then on pressing [wd] button, +1 runs will be added to the score board.
+	>>> Tip: if selected +1 runs. If not selected +0 runs.
+	
+[]NoBall	
+	>> If [NoBall] is selected then on pressing [nb] button, +1 will be added to the score board.
+	>>>>> Tip: if selected +1 runs. If not selected +0 runs.
+
+
+================================Section II=============================================
+How to save batsmen score?
+O playerName1: Score1 [Retd.]  O playerName2: Score2 [Retd.]
+		> You can modify playerNames till you press on [wkt] or [Retd.] button.
+		> which ever radio button[O] is selected, it represents the batsman on strike.
+		> click on [Retd.] button to change the player. The old batsman will be stored in "Batsmen Score card" available at the bottom.
+		> Batsmen striking indicator(O radio button) needs to be cross checked and selected manually if wrong during runouts, no balls and extras.
+		
+		
+==============================SECTION III==================================
+Score card explained?
+
+>left most section:
+	curOver - This gives the number of runs scored so far in the current Over.
+	
+> middle section:
+	TotalScores/Wickets(overs)
+	
+> Right section:
+	CRR > This is current Run Rate.
+	
+	
+=================================SECTION IV=========================================
+Notification Bar: Yellow highlighted helps you with notifications. 
+
+
+===============================SECTION V=================================
+Scoring Tool?
+
+[0] + nb = 
+	> Ball doesn't count.
+	> textbox to give extra runs + nb=0/1 run based on [NoBall} selection at the top.
+		
+[0]+wkt =
+	> Ball counts.
+	> Bowled/catch just press on wkt. 
+	>Run Out
+		1. add runs to corresponding batsman. use [...].
+		2. select the player who got run out(O PlayerName).
+		3. Enter the number of runs completed in the [text box] if any and then press [wkt] button.
+		4. Ensure batting strike is marked to the correct batsman.
+		
+[wd] =
+	> Ball doesn't count.
+	> 0/1 runs based on selection of [Wide] at the top.
+		
+[dot] = 
+	> Ball counts.
+	> 0 runs
+		
+[1] = 
+	> Ball counts.
+	> 1 runs
+	
+[2] = 2 runs
+	> Ball counts.
+	> 1 runs
+	
+[3] = 
+	> Ball counts.
+	> 3 runs
+	
+[4] = 
+	> Ball counts.
+	> 4 runs
+	
+[6] = 6 runs
+	> Ball counts.
+	> 6 runs
+
+dot = 
+	> 0 runs
+1 = 
+	> 1 runs
+
+[Undo] =
+	> Undo the last ball, removes runs from total score,CRR, overs,wickets,*does not undo batsmen score - but you can edit manually*
+	
+[Nxt Over]=
+	> Jump over to nth over by clicking n times this button.
+	> Tip: Helpful to use the score card in the middle of the match. 
+	
+
+=====================================SECTION VI=================================================================================================
+[Batsmen Score]
+	> This is a toggle button which hides and displays the batsman score.
+	> On clicking this button you can see all batsmen score who got out. click on edit to modify the scores and names and update.
+
+[BallByBall]
+	> This is a toggle button which shows/hides ball by ball scoring.
+	
+[set Target]
+	> provide targetscore & total overs of the match and press Update. You will see chasing equation of # runs required for # balls.
+	
+	
+======================================USE CASES=============================================================================================
+How to use the scoring app from middle of the match?
+ > click on [start]. choose sync/wide/noball appropriately. give initial score at [0]+nb and press on [nb] button. Click on [nxt Over] button till you reach the current over.
+ 
+</pre><button id='helpButton' onclick="toggle('helpSection')">Hide Help</button></div>
+   <div style="background-color:black;color:white;">
+      <hr>
+      <table>
+         <tr>
+            <td style="font-size:12px;">
+               &copy; All Rights Reserved 2018-2019 >> <a style="color:white;" href="mailto:rameshbabuiiit@gmail.com?Subject=Rams Gully Cricket Score Card" target="_top">rameshbabuiiit@gmail.com</a>
+   </div>
+   </td></tr></table>
+   <hr>
+   <div id="syncData" style="display: none;">
+     <!--<form  action='update.php'  method='post' id='pushData'> -->
+       <form  action='http://www.learnmodeon.com/cricket/update.php'  method='post' id='pushData'>
+         <input type="text" name="inningsId" id="inningsIdForm"><br>
+         <input type="text" name="score" id="score">
+         <input type="text" name="overs" id="overs">
+         <input type="text" name="ballByBalls" id="ballByBalls2">
+         <input type="text" name="wktsdb" id="wktsdb">
+         <input type="text" name="crrdb" id="crrdb">
+		 <input type="text" name="bmScoresdb" id="bmScoresdb">
+         <input type="submit">
+      </form>
+   </div>
+</body>
+</html>
